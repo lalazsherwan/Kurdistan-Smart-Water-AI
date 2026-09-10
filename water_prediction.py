@@ -1,26 +1,44 @@
 import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
 
-# Sample water data
-data = {
-    "district": ["Erbil", "Sulaymaniyah", "Duhok", "Kirkuk"],
-    "water_supply": [1000, 800, 900, 700],
-    "water_demand": [850, 760, 950, 800]
-}
+# Load the water dataset
+data = pd.read_csv("water_data.csv")
 
-df = pd.DataFrame(data)
+# Calculate water shortage
+data["shortage"] = data["water_demand_m3"] - data["water_supply_m3"]
 
-# Calculate shortage
-df["shortage"] = df["water_demand"] - df["water_supply"]
+# Features used by the AI
+features = [
+    "rainfall_mm",
+    "temperature_c",
+    "population",
+    "water_supply_m3",
+    "water_demand_m3"
+]
 
-# Determine risk level
-def risk_level(shortage):
-    if shortage <= 0:
-        return "Green"
-    elif shortage <= 100:
-        return "Yellow"
-    else:
-        return "Red"
+X = data[features]
+y = data["shortage"]
 
-df["risk_level"] = df["shortage"].apply(risk_level)
+# Create the AI model
+model = RandomForestRegressor(
+    n_estimators=100,
+    random_state=42
+)
 
-print(df)
+# Train the model
+model.fit(X, y)
+
+print("AI model trained successfully! 💧🤖")
+
+# Test prediction
+new_data = pd.DataFrame({
+    "rainfall_mm": [10],
+    "temperature_c": [42],
+    "population": [1000000],
+    "water_supply_m3": [450000],
+    "water_demand_m3": [650000]
+})
+
+prediction = model.predict(new_data)[0]
+
+print(f"Predicted water shortage: {prediction:.0f} m³")
